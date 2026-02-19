@@ -1,0 +1,125 @@
+/* ── Reset ── */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    background: #0a0a0a;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    cursor: crosshair;
+}
+
+/* ── Canvas ── */
+#matrix-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+}
+
+/* ── Centre overlay ── */
+.overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    text-align: center;
+    pointer-events: none;
+}
+
+/* ── Professional title ── */
+.title {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(1.8rem, 5vw, 4rem);
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+    border-bottom: 2px solid rgba(0, 255, 65, 0.4);
+    padding-bottom: 0.6rem;
+}
+
+/* ── Subtitle ── */
+.subtitle {
+    margin-top: 1rem;
+    color: rgba(0, 255, 65, 0.6);
+    font-family: 'Courier New', monospace;
+    font-size: clamp(0.7rem, 1.5vw, 1rem);
+    letter-spacing: 0.2em;
+    animation: pulse 2.5s ease-in-out infinite;
+}
+
+/* ── Click counter ── */
+.click-count {
+    margin-top: 0.8rem;
+    color: rgba(0, 255, 65, 0.4);
+    font-family: 'Courier New', monospace;
+    font-size: clamp(0.6rem, 1.2vw, 0.85rem);
+    letter-spacing: 0.15em;
+}
+
+#click-counter {
+    color: #00ff41;
+    font-weight: 600;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50%      { opacity: 1; }
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.button:hover {
+    background-color: #0056b3;
+}
+
+.card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 10px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #f8f9fa;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
