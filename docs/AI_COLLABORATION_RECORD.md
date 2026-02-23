@@ -2,7 +2,7 @@
 
 ## Project
 - Repo: reusable-studio-engine
-- Deployed link: https://github.com/PreFir3/reusable-studio-engine
+- Deployed link: https://github.com/PreFir3/reusable-studio-enginereusable-studio-engine
 - Date started: February 19, 2026
 
 ## My constraints (before any AI)
