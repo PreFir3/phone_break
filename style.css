@@ -1,125 +1,172 @@
+/* ══════════════════════════════════════════════
+   Pause. — A breathing interruption tool
+   Atmospheric: warm, quiet, unhurried
+   ══════════════════════════════════════════════ */
+
 /* ── Reset ── */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    overflow: hidden;
-    background: #0a0a0a;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    cursor: crosshair;
+  background: #1a1a1a;
+  color: #d4cfc4;
+  font-family: 'Georgia', serif;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease;
 }
 
-/* ── Canvas ── */
-#matrix-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 0;
+/* ── Canvas (breathing circle lives here) ── */
+#canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
 }
 
-/* ── Centre overlay ── */
-.overlay {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-    text-align: center;
-    pointer-events: none;
+#app {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
 }
 
-/* ── Professional title ── */
-.title {
-    font-family: 'Inter', sans-serif;
-    font-size: clamp(1.8rem, 5vw, 4rem);
-    font-weight: 700;
-    color: #ffffff;
-    letter-spacing: 0.15em;
-    text-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
-    border-bottom: 2px solid rgba(0, 255, 65, 0.4);
-    padding-bottom: 0.6rem;
+/* ══════════════════════════════════════════════
+   Phase system — only .active is visible
+   ══════════════════════════════════════════════ */
+.phase {
+  display: none;
+  animation: fadeIn 0.8s ease;
 }
 
-/* ── Subtitle ── */
-.subtitle {
-    margin-top: 1rem;
-    color: rgba(0, 255, 65, 0.6);
-    font-family: 'Courier New', monospace;
-    font-size: clamp(0.7rem, 1.5vw, 1rem);
-    letter-spacing: 0.2em;
-    animation: pulse 2.5s ease-in-out infinite;
+.phase.active {
+  display: block;
 }
 
-/* ── Click counter ── */
-.click-count {
-    margin-top: 0.8rem;
-    color: rgba(0, 255, 65, 0.4);
-    font-family: 'Courier New', monospace;
-    font-size: clamp(0.6rem, 1.2vw, 0.85rem);
-    letter-spacing: 0.15em;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-#click-counter {
-    color: #00ff41;
-    font-weight: 600;
+.soft-text {
+  font-size: 1.3rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  letter-spacing: 0.02em;
 }
 
-@keyframes pulse {
-    0%, 100% { opacity: 0.4; }
-    50%      { opacity: 1; }
+.soft-text.dim {
+  font-size: 1rem;
+  opacity: 0.5;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    color: #333;
+.gentle-btn {
+  background: none;
+  border: 1px solid rgba(212, 207, 196, 0.25);
+  color: #d4cfc4;
+  font-family: 'Georgia', serif;
+  font-size: 1rem;
+  padding: 0.7rem 1.8rem;
+  border-radius: 2rem;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  transition: all 0.3s ease;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
+.gentle-btn:hover {
+  border-color: rgba(212, 207, 196, 0.5);
+  background: rgba(212, 207, 196, 0.05);
 }
 
-.button {
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 5px;
+.text-btn {
+  background: none;
+  border: none;
+  color: #d4cfc4;
+  opacity: 0.3;
+  font-family: 'Georgia', serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: opacity 0.3s ease;
 }
 
-.button:hover {
-    background-color: #0056b3;
+.text-btn:hover {
+  opacity: 0.6;
 }
 
-.card {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 15px;
-    margin: 10px 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+.reason-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
 }
 
-img {
-    max-width: 100%;
-    height: auto;
+.reason-btn {
+  background: none;
+  border: 1px solid rgba(212, 207, 196, 0.15);
+  color: #d4cfc4;
+  font-family: 'Georgia', serif;
+  font-size: 1rem;
+  padding: 0.8rem 1.2rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
 }
 
-footer {
-    text-align: center;
-    padding: 20px;
-    background-color: #f8f9fa;
-    position: relative;
-    bottom: 0;
-    width: 100%;
+.reason-btn:hover {
+  border-color: rgba(212, 207, 196, 0.4);
+  background: rgba(212, 207, 196, 0.05);
+}
+
+.breath-label {
+  font-size: 1.5rem;
+  transition: opacity 0.5s ease;
+}
+
+/* ── Persistent journal link ── */
+.journal-link {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 20;
+  background: none;
+  border: none;
+  color: rgba(232, 228, 223, 0.15);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  padding: 0.5rem;
+}
+
+.journal-link:hover {
+  color: rgba(232, 228, 223, 0.35);
+}
+
+/* ── Scrollbar styling ── */
+.journal-entries::-webkit-scrollbar {
+  width: 4px;
+}
+
+.journal-entries::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.journal-entries::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
 }

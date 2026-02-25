@@ -7,6 +7,7 @@ export function setupCanvas(el) {
     window.addEventListener('resize', resize);
 }
 
+// reading
 function resize() {
     w = window.innerWidth;
     h = window.innerHeight;

@@ -55,3 +55,5 @@ export function clamp(val, min, max) {
 export function mapRange(val, inMin, inMax, outMin, outMax) {
     return ((val - inMin) / (inMax - inMin)) * (outMax - outMin) + outMin;
 }
+
+// reading

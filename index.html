@@ -1,21 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reusable Studio Engine</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pause.</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <canvas id="matrix-bg"></canvas>
-    <div class="overlay">
-        <h1 class="title">REUSABLE STUDIO ENGINE</h1>
-        <p class="subtitle">[ CLICK ANYWHERE TO INTERACT ]</p>
-        <div class="click-count">DISRUPTIONS: <span id="click-counter">0</span></div>
+  <canvas id="canvas"></canvas>
+
+  <div id="app">
+    <!-- Phase: Arrive -->
+    <div class="phase active" id="phase-arrive">
+      <p class="soft-text">You picked up your phone.</p>
+      <p class="soft-text dim">That's okay.</p>
+      <button class="gentle-btn" id="btn-begin">pause with me</button>
     </div>
-    <script type="module" src="main.js"></script>
+
+    <!-- Phase: Breathe -->
+    <div class="phase" id="phase-breathe">
+      <p class="soft-text breath-label" id="breath-label">breathe in</p>
+      <p class="soft-text dim" id="breath-count"></p>
+    </div>
+
+    <!-- Phase: Name -->
+    <div class="phase" id="phase-name">
+      <p class="soft-text">Why did you reach for it?</p>
+      <div class="reason-grid" id="reason-grid"></div>
+    </div>
+
+    <!-- Phase: Reflect -->
+    <div class="phase" id="phase-reflect">
+      <p class="soft-text" id="reflect-text"></p>
+      <p class="soft-text dim" id="reflect-sub"></p>
+    </div>
+
+    <!-- Phase: Complete -->
+    <div class="phase" id="phase-complete">
+      <p class="soft-text" id="complete-text"></p>
+      <p class="soft-text dim" id="complete-sub"></p>
+      <button class="gentle-btn" id="btn-close">close</button>
+    </div>
+
+    <!-- Patterns link -->
+    <div id="patterns-link">
+      <button class="text-btn" id="btn-patterns">patterns</button>
+    </div>
+
+    <!-- Patterns view -->
+    <div class="phase" id="phase-patterns">
+      <p class="soft-text">Your patterns</p>
+      <div id="pattern-list"></div>
+      <div class="pattern-actions">
+        <button class="text-btn" id="btn-clear">clear everything</button>
+        <button class="text-btn" id="btn-back">back</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="main.js" defer></script>
 </body>
 </html>
