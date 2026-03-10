@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phone Break</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <div class="logo">📱</div>
+        <div>
+          <h1>Phone Break</h1>
+          <p class="tagline">Mindful browsing</p>
+        </div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="globalToggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Tab navigation -->
+    <div class="tabs">
+      <button class="tab active" data-tab="sites">Sites</button>
+      <button class="tab" data-tab="stats">Stats</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </div>
+
+    <!-- Sites Tab -->
+    <div class="tab-content active" id="tab-sites">
+      <div class="section-header">
+        <h2>Tracked Sites</h2>
+        <button class="btn-icon" id="addSiteBtn" title="Add site">＋</button>
+      </div>
+
+      <!-- Add site form (hidden by default) -->
+      <div class="add-form hidden" id="addForm">
+        <input type="text" id="newPattern" placeholder="e.g. youtube.com" class="input">
+        <input type="text" id="newLabel" placeholder="Label (e.g. YouTube)" class="input">
+        <div class="form-row">
+          <input type="number" id="newLimit" placeholder="Time limit (min)" class="input input-small" min="1">
+          <button class="btn btn-primary" id="saveSiteBtn">Add</button>
+        </div>
+      </div>
+
+      <div class="site-list" id="siteList">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- Stats Tab -->
+    <div class="tab-content" id="tab-stats">
+      <h2>Today's Activity</h2>
+      <div class="stats-list" id="statsList">
+        <!-- Populated by JS -->
+      </div>
+      <div class="stats-actions">
+        <button class="btn btn-secondary" id="resetStatsBtn">Reset Today</button>
+        <button class="btn btn-primary" id="openDashboardBtn">Full Dashboard</button>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div class="tab-content" id="tab-settings">
+      <h2>Settings</h2>
+
+      <div class="setting-row">
+        <div>
+          <label class="setting-label">Break Duration</label>
+          <p class="setting-desc">Seconds before bypass is available</p>
+        </div>
+        <input type="number" id="breakDuration" class="input input-small" min="5" max="300">
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label class="setting-label">Extension Enabled</label>
+          <p class="setting-desc">Master on/off switch</p>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="enabledToggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="saveSettingsBtn">Save Settings</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

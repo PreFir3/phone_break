@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phone Break – Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Header -->
+    <header class="dash-header">
+      <div class="dash-header-left">
+        <span class="dash-logo">📱</span>
+        <div>
+          <h1>Phone Break Dashboard</h1>
+          <p>Track your browsing habits and stay mindful</p>
+        </div>
+      </div>
+      <div class="dash-header-right">
+        <select id="dateRange" class="select">
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="all">All Time</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- Summary cards -->
+    <div class="summary-grid" id="summaryGrid">
+      <!-- Populated by JS -->
+    </div>
+
+    <!-- Per-site details -->
+    <div class="section">
+      <h2>Site Breakdown</h2>
+      <div class="sites-grid" id="sitesGrid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- Bypass log -->
+    <div class="section">
+      <h2>Bypass History</h2>
+      <div class="bypass-table-wrap">
+        <table class="bypass-table" id="bypassTable">
+          <thead>
+            <tr>
+              <th>Site</th>
+              <th>Date</th>
+              <th>Bypasses</th>
+              <th>Time After Bypass</th>
+              <th>Total Time</th>
+            </tr>
+          </thead>
+          <tbody id="bypassBody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

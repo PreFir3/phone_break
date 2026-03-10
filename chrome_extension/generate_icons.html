@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas id="c16" width="16" height="16"></canvas>
+<canvas id="c48" width="48" height="48"></canvas>
+<canvas id="c128" width="128" height="128"></canvas>
+<script>
+function drawIcon(canvas) {
+  const ctx = canvas.getContext("2d");
+  const s = canvas.width;
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, s, s);
+  grad.addColorStop(0, "#a78bfa");
+  grad.addColorStop(1, "#f472b6");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.roundRect(0, 0, s, s, s * 0.2);
+  ctx.fill();
+
+  // Phone outline
+  const px = s * 0.3, py = s * 0.15, pw = s * 0.4, ph = s * 0.7;
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = Math.max(1, s * 0.04);
+  ctx.beginPath();
+  ctx.roundRect(px, py, pw, ph, s * 0.06);
+  ctx.stroke();
+
+  // X mark
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = Math.max(1, s * 0.05);
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(s * 0.38, s * 0.38);
+  ctx.lineTo(s * 0.62, s * 0.62);
+  ctx.moveTo(s * 0.62, s * 0.38);
+  ctx.lineTo(s * 0.38, s * 0.62);
+  ctx.stroke();
+}
+
+[16, 48, 128].forEach(size => {
+  const canvas = document.getElementById("c" + size);
+  drawIcon(canvas);
+  const link = document.createElement("a");
+  link.download = `icon${size}.png`;
+  link.href = canvas.toDataURL();
+  link.textContent = `Download icon${size}.png`;
+  link.style.display = "block";
+  link.style.margin = "8px";
+  document.body.appendChild(link);
+});
+</script>
+<p style="margin:16px;color:#666;">Click the links above to download icons, then place them in the <code>icons/</code> folder.</p>
+</body>
+</html>
