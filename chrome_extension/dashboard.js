@@ -51,33 +51,33 @@ async function loadDashboard() {
   summaryGrid.innerHTML = `
     <div class="summary-card">
       <div class="summary-card-icon">⏱️</div>
-      <div class="summary-card-value purple">${formatTime(totalTime)}</div>
-      <div class="summary-card-label">Total Time Tracked</div>
+      <div class="summary-card-value white">${formatTime(totalTime)}</div>
+      <div class="summary-card-label">Total Time</div>
     </div>
     <div class="summary-card">
       <div class="summary-card-icon">🔓</div>
-      <div class="summary-card-value pink">${totalBypasses}</div>
-      <div class="summary-card-label">Total Bypasses</div>
+      <div class="summary-card-value red">${totalBypasses}</div>
+      <div class="summary-card-label">Bypasses</div>
     </div>
     <div class="summary-card">
       <div class="summary-card-icon">⏳</div>
-      <div class="summary-card-value blue">${formatTime(totalBypassTime)}</div>
-      <div class="summary-card-label">Time After Bypass</div>
+      <div class="summary-card-value muted">${formatTime(totalBypassTime)}</div>
+      <div class="summary-card-label">After Bypass</div>
     </div>
     <div class="summary-card">
       <div class="summary-card-icon">🌐</div>
-      <div class="summary-card-value green">${sitesTracked.size}</div>
-      <div class="summary-card-label">Sites Tracked</div>
+      <div class="summary-card-value white">${sitesTracked.size}</div>
+      <div class="summary-card-label">Sites</div>
     </div>
     <div class="summary-card">
       <div class="summary-card-icon">📅</div>
-      <div class="summary-card-value yellow">${filteredDates.length}</div>
-      <div class="summary-card-label">Days Active</div>
+      <div class="summary-card-value muted">${filteredDates.length}</div>
+      <div class="summary-card-label">Days</div>
     </div>
     <div class="summary-card">
       <div class="summary-card-icon">📊</div>
-      <div class="summary-card-value red">${totalBypasses > 0 ? Math.round((totalBypassTime / Math.max(totalTime, 1)) * 100) : 0}%</div>
-      <div class="summary-card-label">Bypass Time Ratio</div>
+      <div class="summary-card-value ${totalBypasses > 0 ? 'yellow' : 'green'}">${totalBypasses > 0 ? Math.round((totalBypassTime / Math.max(totalTime, 1)) * 100) : 0}%</div>
+      <div class="summary-card-label">Bypass Ratio</div>
     </div>
   `;
 
@@ -107,7 +107,7 @@ async function loadDashboard() {
       else if (pct >= 75) { badgeClass = "badge-warning"; badgeText = "Near limit"; }
       else if (effectiveLimit === 0) { badgeClass = "badge-ok"; badgeText = "No limit"; }
 
-      let barClass = "bar-purple";
+      let barClass = "bar-ok";
       if (pct >= 100) barClass = "bar-red";
       else if (pct >= 75) barClass = "bar-yellow";
       else if (pct > 0) barClass = "bar-green";

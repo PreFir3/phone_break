@@ -11,14 +11,14 @@ const DEFAULT_SETTINGS = {
     { pattern: "tiktok.com", label: "TikTok", timeLimitMinutes: 15 },
     { pattern: "facebook.com", label: "Facebook", timeLimitMinutes: 30 }
   ],
-  breakDurationSeconds: 30, // how long the overlay stays before bypass is offered
+  breakDurationSeconds: 30,
   globalEnabled: true
 };
 
 // ── Helpers ──
 
 function todayKey() {
-  return new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  return new Date().toISOString().slice(0, 10);
 }
 
 function matchesSite(url, pattern) {
@@ -43,7 +43,6 @@ async function getTodayStats() {
   const key = "stats_" + todayKey();
   const data = await chrome.storage.local.get(key);
   return data[key] || {};
-  // shape: { "youtube.com": { totalSeconds: 0, bypasses: 0, bypassSeconds: 0, lastTick: null, overlayShown: false } }
 }
 
 async function saveTodayStats(stats) {
@@ -60,6 +59,10 @@ async function getAllStats() {
     }
   }
   return stats;
+}
+
+function initSiteStats() {
+  return { totalSeconds: 0, bypasses: 0, bypassSeconds: 0, overlayActive: false, lastBypassTime: 0 };
 }
 
 // ── Time tracking heartbeat ──
@@ -93,30 +96,41 @@ async function tick() {
   const siteKey = matchedSite.pattern;
 
   if (!stats[siteKey]) {
-    stats[siteKey] = { totalSeconds: 0, bypasses: 0, bypassSeconds: 0, overlayActive: false };
+    stats[siteKey] = initSiteStats();
+  }
+
+  // Don't count time while overlay is active (user isn't actually using the site)
+  if (stats[siteKey].overlayActive) {
+    await saveTodayStats(stats);
+    return;
   }
 
   stats[siteKey].totalSeconds += 1;
 
-  // Check if time limit exceeded
-  const limitSec = (matchedSite.timeLimitMinutes || 0) * 60;
-  if (limitSec > 0 && stats[siteKey].totalSeconds >= limitSec && !stats[siteKey].overlayActive) {
-    stats[siteKey].overlayActive = true;
-    // Tell content script to show overlay (time limit reason)
-    try {
-      await chrome.tabs.sendMessage(activeTabId, {
-        action: "showOverlay",
-        reason: "timeLimit",
-        site: matchedSite,
-        stats: stats[siteKey],
-        breakDuration: settings.breakDurationSeconds
-      });
-    } catch (e) { /* tab may not have content script */ }
+  // Track bypass time (time spent after any bypass)
+  if (stats[siteKey].bypasses > 0) {
+    stats[siteKey].bypassSeconds = (stats[siteKey].bypassSeconds || 0) + 1;
   }
 
-  // Track bypass time
-  if (stats[siteKey].overlayActive === false && stats[siteKey].bypasses > 0) {
-    stats[siteKey].bypassSeconds = (stats[siteKey].bypassSeconds || 0) + 1;
+  // Check if time limit just exceeded
+  const limitSec = (matchedSite.timeLimitMinutes || 0) * 60;
+  if (limitSec > 0 && stats[siteKey].totalSeconds >= limitSec && !stats[siteKey].overlayActive) {
+    // Only show overlay if they haven't bypassed in the last 60 seconds
+    // (prevents rapid re-triggering after bypass)
+    const now = Date.now();
+    const timeSinceBypass = now - (stats[siteKey].lastBypassTime || 0);
+    if (timeSinceBypass > 60000) {
+      stats[siteKey].overlayActive = true;
+      try {
+        await chrome.tabs.sendMessage(activeTabId, {
+          action: "showOverlay",
+          reason: "timeLimit",
+          site: matchedSite,
+          stats: stats[siteKey],
+          breakDuration: settings.breakDurationSeconds
+        });
+      } catch (e) { /* tab may not have content script */ }
+    }
   }
 
   await saveTodayStats(stats);
@@ -136,10 +150,6 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (tabId === activeTabId && changeInfo.url) {
     activeTabUrl = changeInfo.url;
-    await handleTabChange(tab);
-  }
-  // Also fire overlay on page load complete for tracked sites
-  if (tabId === activeTabId && changeInfo.status === "complete") {
     await handleTabChange(tab);
   }
 });
@@ -169,38 +179,42 @@ async function handleTabChange(tab) {
   const matchedSite = settings.trackedSites.find(s => matchesSite(tab.url, s.pattern));
   if (!matchedSite) { stopTicking(); return; }
 
+  // Start tracking time
   startTicking();
 
-  // Check if overlay should be shown immediately (first visit or time limit already exceeded)
+  // Only show overlay if the time limit is already exceeded
   const stats = await getTodayStats();
   const siteKey = matchedSite.pattern;
-  const siteStats = stats[siteKey] || { totalSeconds: 0, bypasses: 0, bypassSeconds: 0, overlayActive: false };
+  const siteStats = stats[siteKey] || initSiteStats();
   const limitSec = (matchedSite.timeLimitMinutes || 0) * 60;
 
-  if (limitSec > 0 && siteStats.totalSeconds >= limitSec) {
-    // Time limit already exceeded – show overlay
-    try {
-      await chrome.tabs.sendMessage(tab.id, {
-        action: "showOverlay",
-        reason: "timeLimit",
-        site: matchedSite,
-        stats: siteStats,
-        breakDuration: settings.breakDurationSeconds
-      });
-    } catch { }
-  } else {
-    // Show the initial "phone break" encouragement overlay on first visit
-    // only if not already bypassed in this session
-    try {
-      await chrome.tabs.sendMessage(tab.id, {
-        action: "showOverlay",
-        reason: "siteVisit",
-        site: matchedSite,
-        stats: siteStats,
-        breakDuration: settings.breakDurationSeconds
-      });
-    } catch { }
+  // No time limit set, or under the limit → just track, don't block
+  if (limitSec <= 0 || siteStats.totalSeconds < limitSec) {
+    return;
   }
+
+  // Time limit exceeded — but check if they recently bypassed
+  const now = Date.now();
+  const timeSinceBypass = now - (siteStats.lastBypassTime || 0);
+  if (timeSinceBypass < 60000) {
+    // Bypassed less than 60 seconds ago, don't re-show
+    return;
+  }
+
+  // Show the overlay
+  if (!stats[siteKey]) stats[siteKey] = initSiteStats();
+  stats[siteKey].overlayActive = true;
+  await saveTodayStats(stats);
+
+  try {
+    await chrome.tabs.sendMessage(tab.id, {
+      action: "showOverlay",
+      reason: "timeLimit",
+      site: matchedSite,
+      stats: siteStats,
+      breakDuration: settings.breakDurationSeconds
+    });
+  } catch { }
 }
 
 // ── Message handling ──
@@ -232,8 +246,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg.action === "closedOverlay") {
-    // User chose to leave the site (not bypass)
-    // Optionally navigate away
     if (sender.tab) {
       chrome.tabs.update(sender.tab.id, { url: "https://www.google.com" });
     }
@@ -245,10 +257,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 async function handleBypass(sitePattern) {
   const stats = await getTodayStats();
   if (!stats[sitePattern]) {
-    stats[sitePattern] = { totalSeconds: 0, bypasses: 0, bypassSeconds: 0, overlayActive: false };
+    stats[sitePattern] = initSiteStats();
   }
   stats[sitePattern].bypasses += 1;
   stats[sitePattern].overlayActive = false;
+  stats[sitePattern].lastBypassTime = Date.now();
   await saveTodayStats(stats);
   return { ok: true, bypasses: stats[sitePattern].bypasses };
 }
@@ -262,6 +275,5 @@ chrome.runtime.onInstalled.addListener(async () => {
   }
 });
 
-// Keep service worker alive with alarm
 chrome.alarms.create("keepAlive", { periodInMinutes: 0.5 });
-chrome.alarms.onAlarm.addListener(() => { /* noop keep-alive */ });
+chrome.alarms.onAlarm.addListener(() => { /* keep-alive */ });

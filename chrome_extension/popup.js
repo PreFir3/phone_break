@@ -11,13 +11,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       tabContents.forEach(tc => tc.classList.remove("active"));
       tab.classList.add("active");
       document.getElementById(`tab-${tab.dataset.tab}`).classList.add("active");
-
       if (tab.dataset.tab === "stats") loadStats();
       if (tab.dataset.tab === "settings") loadSettingsTab();
     });
   });
 
-  // Load settings
   const settings = await sendMsg({ action: "getSettings" });
 
   // Global toggle
@@ -35,15 +33,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const addForm = document.getElementById("addForm");
   const saveSiteBtn = document.getElementById("saveSiteBtn");
 
-  addSiteBtn.addEventListener("click", () => {
-    addForm.classList.toggle("hidden");
-  });
+  addSiteBtn.addEventListener("click", () => addForm.classList.toggle("hidden"));
 
   saveSiteBtn.addEventListener("click", async () => {
     const pattern = document.getElementById("newPattern").value.trim().toLowerCase();
     const label = document.getElementById("newLabel").value.trim() || pattern;
     const limit = parseInt(document.getElementById("newLimit").value) || 0;
-
     if (!pattern) return;
 
     const s = await sendMsg({ action: "getSettings" });
@@ -54,7 +49,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("newLabel").value = "";
     document.getElementById("newLimit").value = "";
     addForm.classList.add("hidden");
-
     renderSites(s.trackedSites);
   });
 
@@ -63,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       siteList.innerHTML = `
         <div class="empty-state">
           <div class="emoji">🌐</div>
-          <p>No tracked sites yet.<br>Add one above!</p>
+          <p>No tracked sites yet</p>
         </div>`;
       return;
     }
@@ -74,13 +68,33 @@ document.addEventListener("DOMContentLoaded", async () => {
           <div class="site-name">${escHTML(site.label)}</div>
           <div class="site-pattern">${escHTML(site.pattern)}</div>
         </div>
-        ${site.timeLimitMinutes
-          ? `<span class="site-limit">${site.timeLimitMinutes}m</span>`
-          : `<span class="site-limit" style="opacity:0.4">No limit</span>`
-        }
-        <button class="site-remove" data-index="${i}" title="Remove">✕</button>
+        <div class="site-actions">
+          <div class="site-limit-edit">
+            <input type="number" class="site-limit-input" data-index="${i}"
+              value="${site.timeLimitMinutes || 0}" min="0" max="999" title="Time limit in minutes (0 = no limit)">
+            <span class="site-limit-unit">min</span>
+          </div>
+          <button class="site-remove" data-index="${i}" title="Remove">✕</button>
+        </div>
       </div>
     `).join("");
+
+    // Inline time limit editing
+    siteList.querySelectorAll(".site-limit-input").forEach(input => {
+      let debounce = null;
+      input.addEventListener("input", () => {
+        clearTimeout(debounce);
+        debounce = setTimeout(async () => {
+          const idx = parseInt(input.dataset.index);
+          const val = parseInt(input.value) || 0;
+          const s = await sendMsg({ action: "getSettings" });
+          if (s.trackedSites[idx]) {
+            s.trackedSites[idx].timeLimitMinutes = val;
+            await sendMsg({ action: "saveSettings", settings: s });
+          }
+        }, 400);
+      });
+    });
 
     // Remove handlers
     siteList.querySelectorAll(".site-remove").forEach(btn => {
@@ -101,14 +115,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const stats = await sendMsg({ action: "getTodayStats" });
     const settings = await sendMsg({ action: "getSettings" });
     const statsList = document.getElementById("statsList");
-
     const entries = Object.entries(stats);
 
     if (!entries.length) {
       statsList.innerHTML = `
         <div class="empty-state">
           <div class="emoji">📊</div>
-          <p>No activity recorded today.<br>Go browse something!</p>
+          <p>No activity today</p>
         </div>`;
       return;
     }
@@ -118,7 +131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const label = site ? site.label : pattern;
       const limitSec = site ? (site.timeLimitMinutes || 0) * 60 : 0;
       const pct = limitSec > 0 ? Math.min(100, (data.totalSeconds / limitSec) * 100) : 0;
-      const barColor = pct >= 100 ? "var(--accent-red)" : pct >= 75 ? "var(--accent-yellow)" : "";
+      const barClass = pct >= 100 ? "bar-over" : pct >= 75 ? "bar-warn" : "";
 
       return `
         <div class="stats-item">
@@ -126,13 +139,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             <span class="stats-site-name">${escHTML(label)}</span>
             ${data.bypasses > 0
               ? `<span class="stats-bypass-badge">${data.bypasses} bypass${data.bypasses > 1 ? "es" : ""}</span>`
-              : ""
-            }
+              : ""}
           </div>
           <div class="stats-row">
             <div class="stats-metric">
               <div class="stats-metric-value">${formatTime(data.totalSeconds || 0)}</div>
-              <div class="stats-metric-label">Time spent</div>
+              <div class="stats-metric-label">Time</div>
             </div>
             <div class="stats-metric">
               <div class="stats-metric-value">${formatTime(data.bypassSeconds || 0)}</div>
@@ -140,16 +152,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             </div>
             <div class="stats-metric">
               <div class="stats-metric-value">${limitSec > 0 ? Math.round(pct) + "%" : "—"}</div>
-              <div class="stats-metric-label">Of limit</div>
+              <div class="stats-metric-label">Limit</div>
             </div>
           </div>
           ${limitSec > 0 ? `
             <div class="stats-bar">
-              <div class="stats-bar-fill" style="width:${pct}%;${barColor ? `background:${barColor}` : ""}"></div>
-            </div>
-          ` : ""}
-        </div>
-      `;
+              <div class="stats-bar-fill ${barClass}" style="width:${pct}%"></div>
+            </div>` : ""}
+        </div>`;
     }).join("");
   }
 
@@ -174,20 +184,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     s.breakDurationSeconds = parseInt(document.getElementById("breakDuration").value) || 30;
     s.enabled = document.getElementById("enabledToggle").checked;
     await sendMsg({ action: "saveSettings", settings: s });
-
     const btn = document.getElementById("saveSettingsBtn");
-    btn.textContent = "✓ Saved!";
-    setTimeout(() => { btn.textContent = "Save Settings"; }, 1500);
+    btn.textContent = "✓ Saved";
+    setTimeout(() => { btn.textContent = "Save Settings"; }, 1200);
   });
 
   loadSettingsTab();
 });
 
 // ── Utilities ──
-
-function sendMsg(msg) {
-  return chrome.runtime.sendMessage(msg);
-}
+function sendMsg(msg) { return chrome.runtime.sendMessage(msg); }
 
 function formatTime(seconds) {
   const h = Math.floor(seconds / 3600);

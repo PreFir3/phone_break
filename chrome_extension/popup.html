@@ -37,30 +37,25 @@
         <button class="btn-icon" id="addSiteBtn" title="Add site">＋</button>
       </div>
 
-      <!-- Add site form (hidden by default) -->
       <div class="add-form hidden" id="addForm">
         <input type="text" id="newPattern" placeholder="e.g. youtube.com" class="input">
-        <input type="text" id="newLabel" placeholder="Label (e.g. YouTube)" class="input">
+        <input type="text" id="newLabel" placeholder="Label (optional)" class="input">
         <div class="form-row">
-          <input type="number" id="newLimit" placeholder="Time limit (min)" class="input input-small" min="1">
+          <input type="number" id="newLimit" placeholder="Limit (min)" class="input input-small" min="1">
           <button class="btn btn-primary" id="saveSiteBtn">Add</button>
         </div>
       </div>
 
-      <div class="site-list" id="siteList">
-        <!-- Populated by JS -->
-      </div>
+      <div class="site-list" id="siteList"></div>
     </div>
 
     <!-- Stats Tab -->
     <div class="tab-content" id="tab-stats">
-      <h2>Today's Activity</h2>
-      <div class="stats-list" id="statsList">
-        <!-- Populated by JS -->
-      </div>
+      <h2>Today</h2>
+      <div class="stats-list" id="statsList"></div>
       <div class="stats-actions">
-        <button class="btn btn-secondary" id="resetStatsBtn">Reset Today</button>
-        <button class="btn btn-primary" id="openDashboardBtn">Full Dashboard</button>
+        <button class="btn btn-secondary" id="resetStatsBtn">Reset</button>
+        <button class="btn btn-primary" id="openDashboardBtn">Dashboard</button>
       </div>
     </div>
 
@@ -71,15 +66,15 @@
       <div class="setting-row">
         <div>
           <label class="setting-label">Break Duration</label>
-          <p class="setting-desc">Seconds before bypass is available</p>
+          <p class="setting-desc">Seconds before bypass unlocks</p>
         </div>
         <input type="number" id="breakDuration" class="input input-small" min="5" max="300">
       </div>
 
       <div class="setting-row">
         <div>
-          <label class="setting-label">Extension Enabled</label>
-          <p class="setting-desc">Master on/off switch</p>
+          <label class="setting-label">Enabled</label>
+          <p class="setting-desc">Master on/off</p>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" id="enabledToggle">

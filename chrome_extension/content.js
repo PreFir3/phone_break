@@ -3,12 +3,10 @@
 (() => {
   let overlayEl = null;
   let countdownTimer = null;
-  let bypassed = false;
 
   // Listen for messages from background
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === "showOverlay") {
-      if (bypassed) { sendResponse({ ok: true, skipped: true }); return; }
       showOverlay(msg);
       sendResponse({ ok: true });
     }
@@ -30,8 +28,7 @@
   function showOverlay(data) {
     if (overlayEl) hideOverlay();
 
-    const { reason, site, stats, breakDuration } = data;
-    const isTimeLimit = reason === "timeLimit";
+    const { site, stats, breakDuration } = data;
 
     overlayEl = document.createElement("div");
     overlayEl.id = "phone-break-overlay";
@@ -39,89 +36,72 @@
     const totalTime = formatTime(stats.totalSeconds || 0);
     const bypassCount = stats.bypasses || 0;
     const bypassTime = formatTime(stats.bypassSeconds || 0);
-    const limitMin = site.timeLimitMinutes || "∞";
+    const limitMin = site.timeLimitMinutes || 0;
 
     overlayEl.innerHTML = `
-      <div class="pb-overlay-backdrop">
-        <div class="pb-container">
-          <!-- Floating particles -->
-          <div class="pb-particles">
-            ${Array.from({length: 20}, (_, i) => `<div class="pb-particle pb-particle-${i % 5}"></div>`).join("")}
+      <div class="pb-backdrop">
+        <!-- Subtle floating particles -->
+        <div class="pb-particles">
+          ${Array.from({length: 8}, (_, i) => `<div class="pb-particle pb-p${i % 4}"></div>`).join("")}
+        </div>
+
+        <div class="pb-layout">
+          <!-- Left: Breathing circle -->
+          <div class="pb-left">
+            <div class="pb-breathe-wrap">
+              <div class="pb-breathe-outer">
+                <div class="pb-breathe-ring pb-ring-1"></div>
+                <div class="pb-breathe-ring pb-ring-2"></div>
+                <div class="pb-breathe-ring pb-ring-3"></div>
+                <div class="pb-breathe-core">
+                  <div class="pb-breathe-dot"></div>
+                </div>
+              </div>
+              <p class="pb-breathe-text">Breathe</p>
+            </div>
           </div>
 
-          <!-- Main content -->
-          <div class="pb-content">
-            <div class="pb-icon-wrap">
-              <div class="pb-phone-icon">
-                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="16" y="4" width="32" height="56" rx="6" stroke="currentColor" stroke-width="3"/>
-                  <line x1="16" y1="14" x2="48" y2="14" stroke="currentColor" stroke-width="2"/>
-                  <line x1="16" y1="48" x2="48" y2="48" stroke="currentColor" stroke-width="2"/>
-                  <circle cx="32" cy="54" r="3" fill="currentColor"/>
-                  <line x1="20" y1="26" x2="44" y2="40" stroke="#ff6b6b" stroke-width="3" stroke-linecap="round"/>
-                  <line x1="44" y1="26" x2="20" y2="40" stroke="#ff6b6b" stroke-width="3" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <div class="pb-pulse-ring"></div>
-              <div class="pb-pulse-ring pb-pulse-ring-2"></div>
-            </div>
-
-            <h1 class="pb-title">
-              ${isTimeLimit ? "⏰ Time's Up!" : "📱 Phone Break!"}
-            </h1>
-
+          <!-- Right: Info -->
+          <div class="pb-right">
+            <h1 class="pb-title">Time's Up</h1>
             <p class="pb-subtitle">
-              ${isTimeLimit
-                ? `You've spent <strong>${totalTime}</strong> on <strong>${site.label}</strong> today — that's over your <strong>${limitMin} min</strong> limit.`
-                : `You're visiting <strong>${site.label}</strong>. How about a quick break?`
-              }
+              You've spent <strong>${totalTime}</strong> on <strong>${site.label}</strong> today
+              ${limitMin > 0 ? `— over your <strong>${limitMin}m</strong> limit` : ""}.
             </p>
 
-            <!-- Stats cards -->
-            <div class="pb-stats-row">
-              <div class="pb-stat-card">
-                <div class="pb-stat-value">${totalTime}</div>
-                <div class="pb-stat-label">Time Today</div>
+            <!-- Stats -->
+            <div class="pb-stats">
+              <div class="pb-stat">
+                <span class="pb-stat-val">${totalTime}</span>
+                <span class="pb-stat-lbl">Today</span>
               </div>
-              <div class="pb-stat-card">
-                <div class="pb-stat-value">${bypassCount}</div>
-                <div class="pb-stat-label">Bypasses</div>
+              <div class="pb-stat-divider"></div>
+              <div class="pb-stat">
+                <span class="pb-stat-val">${bypassCount}</span>
+                <span class="pb-stat-lbl">Bypasses</span>
               </div>
-              <div class="pb-stat-card">
-                <div class="pb-stat-value">${bypassTime}</div>
-                <div class="pb-stat-label">Bypass Time</div>
-              </div>
-            </div>
-
-            <!-- Breathing exercise -->
-            <div class="pb-breathe-section">
-              <p class="pb-breathe-label">Take a deep breath...</p>
-              <div class="pb-breathe-circle">
-                <div class="pb-breathe-dot"></div>
+              <div class="pb-stat-divider"></div>
+              <div class="pb-stat">
+                <span class="pb-stat-val">${bypassTime}</span>
+                <span class="pb-stat-lbl">After bypass</span>
               </div>
             </div>
 
             <!-- Countdown -->
-            <div class="pb-countdown-section">
-              <div class="pb-countdown-bar-bg">
-                <div class="pb-countdown-bar-fill" id="pb-countdown-fill"></div>
+            <div class="pb-countdown">
+              <div class="pb-bar-track">
+                <div class="pb-bar-fill" id="pb-bar"></div>
               </div>
-              <p class="pb-countdown-text" id="pb-countdown-text">Bypass available in <span id="pb-countdown-num">${breakDuration}</span>s</p>
+              <p class="pb-bar-text" id="pb-bar-text">Bypass in <span id="pb-secs">${breakDuration}</span>s</p>
             </div>
 
             <!-- Buttons -->
-            <div class="pb-buttons">
-              <button class="pb-btn pb-btn-leave" id="pb-btn-leave">
-                🚪 Leave Site
-              </button>
-              <button class="pb-btn pb-btn-bypass" id="pb-btn-bypass" disabled>
-                ⏳ Wait...
-              </button>
+            <div class="pb-actions">
+              <button class="pb-btn-primary" id="pb-leave">Leave Site</button>
+              <button class="pb-btn-secondary" id="pb-bypass" disabled>Wait...</button>
             </div>
 
-            <p class="pb-footer-note">
-              ${isTimeLimit ? "Consider coming back tomorrow with fresh eyes! 🌟" : "Your future self will thank you! 🙏"}
-            </p>
+            <p class="pb-note">Your future self will thank you.</p>
           </div>
         </div>
       </div>
@@ -129,34 +109,32 @@
 
     document.documentElement.appendChild(overlayEl);
 
-    // Countdown logic
+    // Countdown
     let remaining = breakDuration;
-    const fill = overlayEl.querySelector("#pb-countdown-fill");
-    const numEl = overlayEl.querySelector("#pb-countdown-num");
-    const textEl = overlayEl.querySelector("#pb-countdown-text");
-    const bypassBtn = overlayEl.querySelector("#pb-btn-bypass");
-    const leaveBtn = overlayEl.querySelector("#pb-btn-leave");
+    const bar = overlayEl.querySelector("#pb-bar");
+    const secs = overlayEl.querySelector("#pb-secs");
+    const barText = overlayEl.querySelector("#pb-bar-text");
+    const bypassBtn = overlayEl.querySelector("#pb-bypass");
+    const leaveBtn = overlayEl.querySelector("#pb-leave");
 
     countdownTimer = setInterval(() => {
       remaining--;
-      if (numEl) numEl.textContent = remaining;
-      if (fill) fill.style.width = `${((breakDuration - remaining) / breakDuration) * 100}%`;
+      if (secs) secs.textContent = remaining;
+      if (bar) bar.style.width = `${((breakDuration - remaining) / breakDuration) * 100}%`;
 
       if (remaining <= 0) {
         clearInterval(countdownTimer);
         countdownTimer = null;
-        if (textEl) textEl.textContent = "You can now continue — but be mindful! 🧘";
+        if (barText) barText.textContent = "You may continue — be mindful.";
         if (bypassBtn) {
           bypassBtn.disabled = false;
-          bypassBtn.textContent = "🔓 Continue Anyway";
-          bypassBtn.classList.add("pb-btn-bypass-ready");
+          bypassBtn.textContent = "Continue Anyway";
+          bypassBtn.classList.add("pb-btn-ready");
         }
       }
     }, 1000);
 
-    // Button handlers
     bypassBtn.addEventListener("click", () => {
-      bypassed = true;
       chrome.runtime.sendMessage({ action: "bypass", sitePattern: site.pattern });
       hideOverlay();
     });
@@ -170,11 +148,11 @@
   function hideOverlay() {
     if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
     if (overlayEl) {
-      overlayEl.classList.add("pb-overlay-exiting");
+      overlayEl.classList.add("pb-exiting");
       setTimeout(() => {
         overlayEl?.remove();
         overlayEl = null;
-      }, 400);
+      }, 350);
     }
   }
 })();
